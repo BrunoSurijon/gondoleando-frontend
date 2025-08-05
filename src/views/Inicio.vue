@@ -121,6 +121,12 @@ import axios from 'axios';
 import Buscador from '@/components/Buscador.vue';
 import { ObserveVisibility } from 'vue-observe-visibility';
 
+// Importar logos desde assets
+import logoCoto from '@/assets/coto.png';
+import logoDia from '@/assets/dia.png';
+import logoCarrefour from '@/assets/carrefour.png';
+import logoMas from '@/assets/mas.png';
+
 export default {
   name: 'Inicio',
   components: { Buscador },
@@ -149,11 +155,17 @@ export default {
       listasDeCompras: {},
       nuevoNombreLista: '',
       cargando: true,
-      cargandoMas: false,                  // para scroll infinito móvil
-      productosMostradosInterno: [],       // variable interna para productos móviles
-      cargaInicial: 20,                    // cantidad inicial móvil
-      cargaBloque: 20,                     // cantidad a cargar cada vez móvil
-      anchoPantalla: window.innerWidth    // para detectar mobile
+      cargandoMas: false,
+      productosMostradosInterno: [],
+      cargaInicial: 20,
+      cargaBloque: 20,
+      anchoPantalla: window.innerWidth,
+      // Logos
+      logoCoto,
+      logoDia,
+      logoCarrefour,
+      logoMas,
+      userId: null,
     };
   },
   computed: {
@@ -194,7 +206,6 @@ export default {
       return this.anchoPantalla <= 768;
     },
     productosMostrados() {
-      // esta es la que usás en el template para mostrar
       if (this.esMobile) {
         return this.productosMostradosInterno.length
           ? this.productosMostradosInterno
@@ -281,11 +292,26 @@ export default {
     scrollAlTop() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
+
+    // Asigna logo según supermercado
+    asignaLogo(supermercadoNombre) {
+      if (!supermercadoNombre) return null;
+      const nombre = supermercadoNombre.toLowerCase();
+      if (nombre.includes('coto')) return this.logoCoto;
+      if (nombre.includes('día') || nombre.includes('dia')) return this.logoDia;
+      if (nombre.includes('carrefour')) return this.logoCarrefour;
+      if (nombre.includes('más') || nombre.includes('mas')) return this.logoMas;
+      return null;
+    },
+
     cargarProductos() {
       this.cargando = true;
       axios.get('https://gondoleando-backend.onrender.com/api/productos')
         .then(response => {
-          this.productos = response.data;
+          this.productos = response.data.map(p => ({
+            ...p,
+            logo: this.asignaLogo(p.supermercado)
+          }));
           if (this.esMobile) {
             this.productosMostradosInterno = this.productosFiltrados.slice(0, this.cargaInicial);
           }

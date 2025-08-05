@@ -4,7 +4,7 @@
     <div v-if="!nombreLista">
       <h2 v-if="Object.keys(todasLasListas).length">Listas creadas</h2>
       <div v-else class="lista-vacia">
-        <img src="@/assets/lista.png" alt="Lista vacía" class="icono-lista-vacia" />
+        <img :src="iconLista" alt="Lista vacía" class="icono-lista-vacia" />
         <p class="mensaje-lista-vacia">Aún no armaste ninguna lista</p>
         <button @click="abrirModalCrear" class="boton-principal">Crear lista de compras</button>
       </div>
@@ -20,20 +20,20 @@
             <p class="cantidad-productos">{{ items.length }} productos</p>
             <div class="acciones-lista">
               <button
-              v-if="items.length > 0"
-              @click.stop="descargarLista(nombre, items)"
-              class="boton-descargar-icono"
-              aria-label="Descargar lista"
-            >
-              <img src="@/assets/descargar.png" alt="Descargar" />
-            </button>
+                v-if="items.length > 0"
+                @click.stop="descargarLista(nombre, items)"
+                class="boton-descargar-icono"
+                aria-label="Descargar lista"
+              >
+                <img :src="iconDescargar" alt="Descargar" />
+              </button>
 
               <button
                 @click.stop="confirmarEliminarLista(nombre)"
                 class="boton-eliminar-icono"
                 aria-label="Eliminar lista"
               >
-                <img src="@/assets/eliminar.png" alt="Eliminar" />
+                <img :src="iconEliminar" alt="Eliminar" />
               </button>
             </div>
           </div>
@@ -54,7 +54,7 @@
             class="btn-eliminar-lista-titulo"
             aria-label="Eliminar lista"
           >
-            <img src="@/assets/eliminar.png" alt="Eliminar" />
+            <img :src="iconEliminar" alt="Eliminar" />
           </button>
         </div>
       </div>
@@ -88,11 +88,12 @@
               <button @click="sumarCantidad(producto)">+</button>
             </div>
             <button class="boton-eliminar-detalle" @click="abrirModalEliminarProducto(index)" aria-label="Eliminar producto">
-              <img src="@/assets/eliminar.png" alt="Eliminar" />
+              <img :src="iconEliminar" alt="Eliminar" />
             </button>
           </div>
         </div>
       </div>
+
       <!-- Lista por supermercado -->
       <div v-if="vista === 'supermercado' && lista.length" class="supermercados-totales">
         <div v-if="vistaSuperLista">
@@ -121,9 +122,8 @@
                   <span>{{ producto.cantidad || 1 }}</span>
                   <button @click="sumarCantidad(producto)">+</button>
                 </div>
-                <!-- Aquí el cambio clave: paso index y flag true -->
                 <button class="boton-eliminar-detalle" @click="abrirModalEliminarProducto(index, true)" aria-label="Eliminar producto">
-                  <img src="@/assets/eliminar.png" alt="Eliminar" />
+                  <img :src="iconEliminar" alt="Eliminar" />
                 </button>
               </div>
             </div>
@@ -173,29 +173,29 @@
       </div>
 
       <!-- SIN productos: imagen + texto -->
-        <div v-if="!lista.length && vista === 'producto'" class="lista-vacia">
-          <img src="@/assets/lista.png" alt="Lista vacía" class="icono-lista-vacia" />
-          <p class="mensaje-lista-vacia">Aún no hay productos</p>
-        </div>
+      <div v-if="!lista.length && vista === 'producto'" class="lista-vacia">
+        <img :src="iconLista" alt="Lista vacía" class="icono-lista-vacia" />
+        <p class="mensaje-lista-vacia">Aún no hay productos</p>
+      </div>
 
-        <!-- Total + botón vaciar + botón añadir -->
-        <div v-if="vista === 'producto'" class="total-acciones-contenedor">
-          <div v-if="lista.length" class="total-box">Total: ${{ total }}</div>
-          <div v-if="lista.length" class="total-box clickable" @click="vaciarLista">Vaciar lista</div>
+      <!-- Total + botón vaciar + botón añadir -->
+      <div v-if="vista === 'producto'" class="total-acciones-contenedor">
+        <div v-if="lista.length" class="total-box">Total: ${{ total }}</div>
+        <div v-if="lista.length" class="total-box clickable" @click="vaciarLista">Vaciar lista</div>
 
-          <router-link
-            :to="{ path: '/', query: { lista: nombreLista } }"
-            class="boton-principal btn-anadir-productos"
-          >
-            Añadir productos
-          </router-link>
-        </div>
-        </div>
+        <router-link
+          :to="{ path: '/', query: { lista: nombreLista } }"
+          class="boton-principal btn-anadir-productos"
+        >
+          Añadir productos
+        </router-link>
+      </div>
+    </div>
 
     <!-- MODALES -->
     <div v-if="modalCrearVisible" class="modal-backdrop" @click.self="cerrarModalCrear">
       <div class="modal">
-        <img src="@/assets/cerrar.png" alt="Cerrar modal" class="cerrar-icono" @click="cerrarModalCrear" />
+        <img :src="iconCerrar" alt="Cerrar modal" class="cerrar-icono" @click="cerrarModalCrear" />
         <h2 class="modal-titulo">Ingresar nombre de la lista</h2>
         <div class="nueva-lista">
           <input
@@ -237,7 +237,14 @@
   </div>
 </template>
 
+
 <script>
+// Importar logos
+import logoCoto from '@/assets/coto.png';
+import logoDia from '@/assets/dia.png';
+import logoCarrefour from '@/assets/carrefour.png';
+import logoMas from '@/assets/mas.png';
+
 export default {
   name: "ListaDeCompras",
   data() {
@@ -260,6 +267,11 @@ export default {
       vistaSuperLista: false,
       superLista: [],
       supermercadoSeleccionado: "",
+      // logos
+      logoCoto,
+      logoDia,
+      logoCarrefour,
+      logoMas,
     };
   },
   computed: {
@@ -606,6 +618,16 @@ export default {
       doc.save(`${nombre}.pdf`);
     },
 
+    // Método para obtener el logo según supermercado
+    obtenerLogo(supermercadoNombre) {
+      if (!supermercadoNombre) return null;
+      const nombre = supermercadoNombre.toLowerCase();
+      if (nombre.includes('coto')) return this.logoCoto;
+      if (nombre.includes('día') || nombre.includes('dia')) return this.logoDia;
+      if (nombre.includes('carrefour')) return this.logoCarrefour;
+      if (nombre.includes('más') || nombre.includes('mas')) return this.logoMas;
+      return null;
+    },
   },
   mounted() {
     this.cargarDesdeStorage();
