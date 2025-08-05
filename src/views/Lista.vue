@@ -240,10 +240,15 @@
 
 <script>
 // Importar logos
-import logoCoto from '@/assets/coto.png';
-import logoDia from '@/assets/dia.png';
-import logoCarrefour from '@/assets/carrefour.png';
-import logoMas from '@/assets/mas.png';
+const logoCoto = new URL('@/assets/coto.png', import.meta.url).href;
+const logoDia = new URL('@/assets/dia.png', import.meta.url).href;
+const logoCarrefour = new URL('@/assets/carrefour.png', import.meta.url).href;
+const logoMas = new URL('@/assets/mas.png', import.meta.url).href;
+
+const iconEliminar = new URL('@/assets/eliminar.png', import.meta.url).href;
+const iconDescargar = new URL('@/assets/descargar.png', import.meta.url).href;
+const iconLista = new URL('@/assets/lista.png', import.meta.url).href;
+const iconCerrar = new URL('@/assets/cerrar.png', import.meta.url).href;
 
 export default {
   name: "ListaDeCompras",
@@ -267,11 +272,15 @@ export default {
       vistaSuperLista: false,
       superLista: [],
       supermercadoSeleccionado: "",
-      // logos
+      // logos corregidos
       logoCoto,
       logoDia,
       logoCarrefour,
       logoMas,
+      iconEliminar,
+      iconDescargar,
+      iconLista,
+      iconCerrar,
     };
   },
   computed: {
@@ -618,7 +627,6 @@ export default {
       doc.save(`${nombre}.pdf`);
     },
 
-    // Método para obtener el logo según supermercado
     obtenerLogo(supermercadoNombre) {
       if (!supermercadoNombre) return null;
       const nombre = supermercadoNombre.toLowerCase();
