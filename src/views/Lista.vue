@@ -556,76 +556,114 @@ export default {
       this.supermercadoSeleccionado = "";
       this.supermercadoAbierto = null;
     },
-    descargarLista(nombre, items) {
-      if (!items.length) return;
+    async descargarLista(nombre, items) {
+  if (!items.length) return;
 
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-      const marginLeft = 15;
-      let verticalOffset = 30;
+  const marginLeft = 15;
+  let verticalOffset = 10; // menos margen arriba para el logo
+  const pageWidth = doc.internal.pageSize.getWidth();
 
-      doc.setFontSize(22);
-      doc.setTextColor("#112D55");
-      doc.setFont("poppins", "bold");
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const textWidth = doc.getTextWidth("Gondoleando");
-      doc.text("Gondoleando", (pageWidth - textWidth) / 2, verticalOffset);
+  // Cargar logo y dimensiones originales
+  const logoData = await this.obtenerLogoBase64();
+  const logoWidth = 35;
+  const logoHeight = logoWidth * (logoData.height / logoData.width);
 
-      verticalOffset += 15;
-      doc.setFontSize(14);
-      doc.setFont("poppins", "bold");
-      doc.setTextColor("#112D55");
-      doc.text(`${nombre}`, marginLeft, verticalOffset);
+  // Logo centrado y más arriba
+  doc.addImage(logoData.base64, 'PNG', (pageWidth - logoWidth) / 2, verticalOffset, logoWidth, logoHeight);
 
-      verticalOffset += 12;
-      doc.setFontSize(11);
-      doc.setFont("poppins", "normal");
+  verticalOffset += logoHeight + 15;
 
-      items.forEach((item, i) => {
-        const cantidad = item.cantidad || 1;
-        const precioUnitario = parseFloat(this.parsearPrecio(item.precio));
-        const totalItem = (precioUnitario * cantidad).toFixed(2);
-        const supermercado = item.supermercado ? `${item.supermercado}` : "";
+  // Nombre lista (subtítulo)
+  doc.setFontSize(18);
+  doc.setTextColor("#112D55");
+  doc.setFont("poppins", "bold");
+  doc.text(nombre, marginLeft, verticalOffset);
 
-        doc.setTextColor("#000");
-        const detalleInicio = `${i + 1}. `;
-        doc.text(detalleInicio, marginLeft, verticalOffset);
+  verticalOffset += 15;
 
-        let offset = marginLeft + doc.getTextWidth(detalleInicio);
+  // Cabecera de tabla
+  doc.setFontSize(11);
+  doc.setFont("poppins", "bold");
+  doc.setTextColor("#112D55");
+  doc.text("N°", marginLeft, verticalOffset);
+  doc.text("Supermercado", marginLeft + 15, verticalOffset);
+  doc.text("Producto", marginLeft + 55, verticalOffset);
+  doc.text("Cant", marginLeft + 120, verticalOffset);
+  doc.text("Precio", marginLeft + 140, verticalOffset);
+  doc.text("Total", marginLeft + 165, verticalOffset);
 
-        doc.setFont("poppins", "bold");
-        doc.setTextColor("#112D55");
-        doc.text(supermercado, offset, verticalOffset);
-        offset += doc.getTextWidth(supermercado + "  ");
+  verticalOffset += 7;
 
-        doc.setFont("poppins", "normal");
-        doc.setTextColor("#000");
-        const nombreProducto = `${item.nombre} - ${cantidad} x `;
-        doc.text(nombreProducto, offset, verticalOffset);
-        offset += doc.getTextWidth(nombreProducto);
+  // Cuerpo de tabla
+  doc.setFont("poppins", "normal");
+  doc.setTextColor("#000");
 
-        doc.setFont("poppins", "bold");
-        doc.setTextColor("#112D55");
-        const precios = `$${precioUnitario.toFixed(2)} = $${totalItem}`;
-        doc.text(precios, offset, verticalOffset);
+  items.forEach((item, i) => {
+    const cantidad = item.cantidad || 1;
+    const precioUnitario = parseFloat(this.parsearPrecio(item.precio));
+    const totalItem = (precioUnitario * cantidad).toFixed(2);
+    const supermercado = item.supermercado || "";
+    const nombreProducto = item.nombre || "";
 
-        verticalOffset += 10;
+    doc.text(`${i + 1}`, marginLeft, verticalOffset);
+    doc.text(supermercado, marginLeft + 15, verticalOffset);
+    doc.text(nombreProducto, marginLeft + 55, verticalOffset);
+    doc.text(`${cantidad}`, marginLeft + 120, verticalOffset);
+    doc.text(`$${precioUnitario.toFixed(2)}`, marginLeft + 140, verticalOffset);
+    doc.text(`$${totalItem}`, marginLeft + 165, verticalOffset);
 
-        if (verticalOffset > 280) {
-          doc.addPage();
-          verticalOffset = 30;
-        }
+    verticalOffset += 7;
+
+    if (verticalOffset > 270) {
+      doc.addPage();
+      verticalOffset = 10;
+    }
+  });
+
+  // Total general más grande
+  verticalOffset += 10;
+  doc.setFontSize(15);
+  doc.setTextColor("#112D55");
+  doc.setFont("poppins", "bold");
+  doc.text(`Total: $${this.calcularTotal(items)}`, marginLeft, verticalOffset);
+
+  doc.save(`${nombre}.pdf`);
+},
+
+
+// Helper para obtener logo base64 y tamaño original
+async obtenerLogoBase64() {
+  const logoUrl = new URL('@/assets/logo.png', import.meta.url).href;
+  const response = await fetch(logoUrl);
+  const blob = await response.blob();
+  const base64 = await this.convertirBlobABase64(blob);
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      resolve({
+        base64,
+        width: img.naturalWidth,
+        height: img.naturalHeight,
       });
+    };
+    img.src = base64;
+  });
+},
 
-      verticalOffset += 10;
-      doc.setFontSize(13);
-      doc.setTextColor("#112D55");
-      doc.setFont("poppins", "bold");
-      doc.text(`Total: $${this.calcularTotal(items)}`, marginLeft, verticalOffset);
+// Convierte blob a base64
+convertirBlobABase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+},
 
-      doc.save(`${nombre}.pdf`);
-    },
 
     obtenerLogo(supermercadoNombre) {
       if (!supermercadoNombre) return null;
