@@ -53,8 +53,14 @@ const loading = ref(false);
 async function handleRegister() {
   errorMessage.value = "";
   successMessage.value = "";
-  loading.value = true;
 
+  // Validación rápida en frontend
+  if (!nombreApellido.value.trim()) {
+    errorMessage.value = "Debes ingresar tu nombre y apellido.";
+    return;
+  }
+
+  loading.value = true;
   const startTime = Date.now();
 
   try {
@@ -62,7 +68,7 @@ async function handleRegister() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        nombreApellido: nombreApellido.value,
+        nombreApellido: nombreApellido.value.trim(),
         email: email.value,
         password: password.value,
       }),
@@ -74,10 +80,10 @@ async function handleRegister() {
 
     if (!res.ok) {
       const data = await res.json();
-      if (data.message && data.message.includes("exist")) {
+      if (data.mensaje && data.mensaje.includes("existe")) {
         throw new Error("Cuenta existente");
       }
-      throw new Error(data.message || "Error al registrar");
+      throw new Error(data.mensaje || "Error al registrar");
     }
 
     successMessage.value = "Registro exitoso";
@@ -90,4 +96,5 @@ async function handleRegister() {
     loading.value = false;
   }
 }
+
 </script>
