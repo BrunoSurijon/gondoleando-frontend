@@ -54,11 +54,6 @@ async function handleRegister() {
   errorMessage.value = "";
   successMessage.value = "";
 
-  // Validación rápida en frontend
-  if (!nombreApellido.value.trim()) {
-    errorMessage.value = "Debes ingresar tu nombre y apellido.";
-    return;
-  }
 
   loading.value = true;
   const startTime = Date.now();
