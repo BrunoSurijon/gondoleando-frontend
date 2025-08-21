@@ -136,7 +136,7 @@
             >
               Añadir productos
             </router-link>
-            <button @click="volverAConsolidado" class="boton-principal">
+            <button @click="volverAConsolidado" class="boton-ver-conteo">
               Ver conteo general
             </button>
           </div>
@@ -842,6 +842,19 @@ convertirBlobABase64(blob) {
   gap: 1rem;
   margin-top: 1.5rem;
 }
+.boton-ver-conteo {
+  background-color: #112d55; 
+  color: white; 
+  padding: 0.8rem 1.6rem; 
+  font-size: 1.17rem; 
+  border-radius: 6px; 
+  border: none; 
+  cursor: pointer; 
+  transition: background-color 0.2s ease; 
+}
+.boton-ver-conteo:hover {
+  background-color: #0d2040; 
+}
 .checkbox-container {
   align-self: flex-end;
   padding-bottom: 0.2rem;
@@ -854,7 +867,7 @@ convertirBlobABase64(blob) {
   border-radius: 6px;
   padding: 0.2rem 0.6rem;
   background-color: white;
-  height: 28px; /* Ajustar la altura del contenedor */
+  height: 28px; 
   justify-content: center;
   flex: 1;
   max-width: 100px;
